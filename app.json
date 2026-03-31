@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "B12 Health Tracker",
+    "slug": "b12-health-tracker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#FBF3F6"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.b12health.tracker"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FBF3F6"
+      },
+      "package": "com.b12health.tracker"
+    }
+  }
+}

@@ -1,0 +1,91 @@
+version: "3.9"
+
+services:
+  # ── PostgreSQL Database ──────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: b12_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: b12db
+      POSTGRES_USER: b12user
+      POSTGRES_PASSWORD: b12pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Auto-run migrations and seed on first start
+      - ./database/migrations/001_core.sql:/docker-entrypoint-initdb.d/001_core.sql
+      - ./database/migrations/002_questionnaire.sql:/docker-entrypoint-initdb.d/002_questionnaire.sql
+      - ./database/migrations/003_checkin_streak.sql:/docker-entrypoint-initdb.d/003_checkin_streak.sql
+      - ./database/seeds/questions_seed.sql:/docker-entrypoint-initdb.d/004_questions_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U b12user -d b12db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Python FastAPI Scoring Service ──────────────────────────
+  python-api:
+    build:
+      context: ./python-service
+      dockerfile: Dockerfile
+    container_name: b12_python_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://b12user:b12pass@postgres:5432/b12db
+      FASTAPI_PORT: 8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ── Node.js Express API Gateway ─────────────────────────────
+  node-api:
+    build:
+      context: ./node-service
+      dockerfile: Dockerfile
+    container_name: b12_node_api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      NODE_PORT: 3000
+      DATABASE_URL: postgresql://b12user:b12pass@postgres:5432/b12db
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRES_IN: 7d
+      FASTAPI_URL: http://python-api:8000
+      ENABLE_MONGODB: "false"
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX: 100
+    depends_on:
+      postgres:
+        condition: service_healthy
+      python-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ── MongoDB (Optional) ───────────────────────────────────────
+  # Uncomment and set ENABLE_MONGODB=true in node-api if needed
+  # mongodb:
+  #   image: mongo:7
+  #   container_name: b12_mongodb
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongo_data:/data/db
+
+volumes:
+  postgres_data:
+  # mongo_data:
