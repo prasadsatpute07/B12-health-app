@@ -2,6 +2,7 @@ const express = require('express');
 const { body, query, validationResult } = require('express-validator');
 const authMiddleware = require('../middleware/auth');
 const { DailyCheckin, UserStreak } = require('../models/DailyCheckin');
+const UserHealthState = require('../models/UserHealthState');
 const { sendSuccess, sendError } = require('../utils/response');
 const { Op, fn, col, literal } = require('sequelize');
 
@@ -62,6 +63,25 @@ router.post('/daily', [
     }, { returning: true });
 
     const streak = await updateStreak(req.user.id, today);
+
+    // ── Update user_health_state with today's daily scores ──────────────────
+    // Only updates the current_* columns — questionnaire baseline stays intact.
+    // Uses a raw INCREMENT for total_checkins so we don't need to read first.
+    const healthState = await UserHealthState.findOne({ where: { user_id: req.user.id } });
+    if (healthState) {
+      await healthState.update({
+        current_energy_score:  energyScore,
+        current_fatigue_score: fatigueScore,
+        current_mood_score:    moodScore,
+        current_sleep_score:   sleepScore,
+        current_focus_score:   focusScore,
+        current_daily_total:   energyScore + fatigueScore + moodScore + sleepScore + focusScore,
+        last_checkin_date:     today,
+        total_checkins:        (healthState.total_checkins || 0) + 1,
+      });
+    }
+    // (If healthState doesn't exist yet, the user hasn't done the questionnaire
+    // — we silently skip. It will be created when they submit the questionnaire.)
 
     return sendSuccess(res, { checkin, streak, isNew: created }, 201);
   } catch (err) {

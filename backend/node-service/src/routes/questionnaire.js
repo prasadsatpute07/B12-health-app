@@ -5,6 +5,7 @@ const Question = require('../models/Question');
 const Assessment = require('../models/Assessment');
 const AssessmentAnswer = require('../models/AssessmentAnswer');
 const UserProfile = require('../models/UserProfile');
+const UserHealthState = require('../models/UserHealthState');
 const scoringProxy = require('../services/scoringProxy');
 const { sendSuccess, sendError } = require('../utils/response');
 const { Op } = require('sequelize');
@@ -116,6 +117,31 @@ router.post('/submit', [
       };
     });
     await AssessmentAnswer.bulkCreate(answerRows);
+
+    // ── Seed / refresh user_health_state with questionnaire baseline ──────
+    // This creates the row on first assessment and updates the FK + baseline
+    // fields if the user ever re-does the questionnaire.
+    // The daily_checkins columns (current_*) are left NULL until the first
+    // daily check-in arrives.
+    await UserHealthState.upsert({
+      user_id:               req.user.id,
+      assessment_id:         assessment.id,
+      // questionnaire snapshot
+      age_at_assessment:     profile?.age               || null,
+      age_group:             profile?.age_group         || null,
+      gender:                profile?.gender            || null,
+      diet_type:             profile?.diet_type         || null,
+      diet_penalty_score:    profile?.diet_penalty_score || 0,
+      has_pernicious_anemia: profile?.has_pernicious_anemia || false,
+      has_crohns_disease:    profile?.has_crohns_disease    || false,
+      has_celiac_disease:    profile?.has_celiac_disease    || false,
+      has_gastric_surgery:   profile?.has_gastric_surgery   || false,
+      takes_metformin:       profile?.takes_metformin        || false,
+      takes_ppi:             profile?.takes_ppi              || false,
+      // risk baseline from this assessment
+      baseline_risk_level:   scoringResult.risk_level,
+      baseline_risk_score:   scoringResult.normalized_score,
+    }, { conflictFields: ['user_id'] });
 
     // Return shape matching the app's expected response
     return sendSuccess(res, {
