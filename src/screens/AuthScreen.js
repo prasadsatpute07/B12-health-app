@@ -1,0 +1,426 @@
+import React, { useState } from 'react';
+import {
+  View, Text, StyleSheet, TextInput, TouchableOpacity,
+  KeyboardAvoidingView, Platform, ScrollView, Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors, fontSizes, fontWeights, spacing, radius, shadow } from '../theme';
+import { PrimaryButton } from '../components/UI';
+import { useAuth } from '../context/AuthContext';
+
+export default function AuthScreen({ navigation, route }) {
+  const { register, login, isLoading, error, clearError } = useAuth();
+
+  // Allow navigation params to set initial mode (e.g. 'register' from ScorePreview)
+  const initialMode = route?.params?.initialMode || 'login';
+
+  const [mode, setMode]       = useState(initialMode); // 'login' | 'register'
+  const [email, setEmail]     = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [localError, setLocalError] = useState('');
+  const [duplicateEmail, setDuplicateEmail] = useState(false); // email exists on register
+  const [noAccount, setNoAccount] = useState(false);           // account not found on login
+
+  const toggleMode = () => {
+    setMode((m) => (m === 'login' ? 'register' : 'login'));
+    setLocalError('');
+    setDuplicateEmail(false);
+    setNoAccount(false);
+    clearError();
+  };
+
+  const switchToLogin = () => {
+    setMode('login');
+    setLocalError('');
+    setDuplicateEmail(false);
+    setNoAccount(false);
+    clearError();
+  };
+
+  const switchToRegister = () => {
+    setMode('register');
+    setLocalError('');
+    setDuplicateEmail(false);
+    setNoAccount(false);
+    clearError();
+  };
+
+  const validate = () => {
+    if (!email.trim()) return 'Email is required';
+    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Enter a valid email';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+    if (mode === 'register' && password !== confirmPw) return 'Passwords do not match';
+    return null;
+  };
+
+  const handleSubmit = async () => {
+    setLocalError('');
+    setDuplicateEmail(false);
+    setNoAccount(false);
+    clearError();
+
+    const validationError = validate();
+    if (validationError) {
+      setLocalError(validationError);
+      return;
+    }
+
+    let result;
+    if (mode === 'register') {
+      result = await register(email.trim().toLowerCase(), password);
+      if (!result?.success) {
+        // Check if it's a duplicate email error (409)
+        const errMsg = result?.error || '';
+        if (
+          errMsg.toLowerCase().includes('already') ||
+          errMsg.toLowerCase().includes('registered') ||
+          errMsg.toLowerCase().includes('exists')
+        ) {
+          setDuplicateEmail(true);
+          setLocalError('This email is already registered.');
+        } else {
+          setLocalError(errMsg || 'Registration failed. Please try again.');
+        }
+        return;
+      }
+    } else {
+      result = await login(email.trim().toLowerCase(), password);
+      if (!result?.success) {
+        const errMsg = (result?.error || '').toLowerCase();
+        if (errMsg.includes('not found') || errMsg.includes('no account') || errMsg.includes("doesn't exist") || errMsg.includes('does not exist')) {
+          // Account doesn't exist at all — prompt to sign up
+          setNoAccount(true);
+          setLocalError("This account doesn't exist.");
+        } else if (errMsg.includes('password') || errMsg.includes('incorrect') || errMsg.includes('invalid')) {
+          // Wrong password — tell user specifically
+          setLocalError('Your password is incorrect. Please try again.');
+        } else {
+          setLocalError(result?.error || 'Login failed. Please check your details.');
+        }
+        return;
+      }
+    }
+
+    // Navigate to Main dashboard on success
+    if (result?.success && navigation) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      });
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    Alert.alert(
+      '🚀 Coming Soon!',
+      'Google Login will be available in the next update. Stay tuned!',
+      [{ text: 'OK', style: 'default' }]
+    );
+  };
+
+  const displayError = localError || error;
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Logo / Branding */}
+          <View style={styles.brandSection}>
+            <View style={styles.logoWrap}>
+              <Text style={styles.logoEmoji}>🧬</Text>
+            </View>
+            <Text style={styles.appName}>B12 Health</Text>
+            <Text style={styles.tagline}>Track your Vitamin B12 health</Text>
+          </View>
+
+          {/* Form Card */}
+          <View style={styles.formCard}>
+            <Text style={styles.formTitle}>
+              {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+            </Text>
+            <Text style={styles.formSubtitle}>
+              {mode === 'login'
+                ? 'Sign in to continue tracking your health'
+                : 'Start your B12 health journey today'}
+            </Text>
+
+            {/* Error */}
+            {displayError ? (
+              <View style={styles.errorBanner}>
+                <Text style={styles.errorText}>⚠️ {displayError}</Text>
+                {duplicateEmail && (
+                  <TouchableOpacity onPress={switchToLogin} style={styles.errorActionBtn}>
+                    <Text style={styles.errorActionText}>👉 Log in to your existing account</Text>
+                  </TouchableOpacity>
+                )}
+                {noAccount && (
+                  <TouchableOpacity onPress={switchToRegister} style={styles.errorActionBtn}>
+                    <Text style={styles.errorActionText}>✨ Create a new account instead</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : null}
+
+            {/* Email */}
+            <Text style={styles.inputLabel}>Email</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="you@example.com"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              value={email}
+              onChangeText={setEmail}
+            />
+
+            {/* Password */}
+            <Text style={styles.inputLabel}>Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Min 6 characters"
+              placeholderTextColor={colors.textMuted}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+
+            {/* Confirm Password (register only) */}
+            {mode === 'register' && (
+              <>
+                <Text style={styles.inputLabel}>Confirm Password</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Re-enter password"
+                  placeholderTextColor={colors.textMuted}
+                  secureTextEntry
+                  value={confirmPw}
+                  onChangeText={setConfirmPw}
+                />
+              </>
+            )}
+
+            <PrimaryButton
+              label={mode === 'login' ? 'Sign In' : 'Create Account'}
+              onPress={handleSubmit}
+              disabled={isLoading}
+              loading={isLoading}
+              style={{ marginTop: spacing.lg }}
+            />
+
+            {/* Toggle */}
+            <TouchableOpacity onPress={toggleMode} style={styles.toggleBtn}>
+              <Text style={styles.toggleText}>
+                {mode === 'login'
+                  ? "Don't have an account? "
+                  : 'Already have an account? '}
+                <Text style={styles.toggleHighlight}>
+                  {mode === 'login' ? 'Sign Up' : 'Sign In'}
+                </Text>
+              </Text>
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Google Login — Coming Soon */}
+            <TouchableOpacity
+              style={styles.googleBtn}
+              onPress={handleGoogleLogin}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.googleBtnIcon}>G</Text>
+              <Text style={styles.googleBtnText}>Continue with Google</Text>
+              <View style={styles.comingSoonBadge}>
+                <Text style={styles.comingSoonText}>Coming Soon</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.bg },
+  container: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xxl,
+  },
+
+  brandSection: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  logoWrap: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.tintPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 201, 167, 0.25)',
+  },
+  logoEmoji: { fontSize: 40 },
+  appName: {
+    fontSize: fontSizes.xxl,
+    fontWeight: fontWeights.extrabold,
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  tagline: {
+    fontSize: fontSizes.sm,
+    color: colors.textMuted,
+  },
+
+  formCard: {
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.xxl,
+    padding: spacing.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadow.card,
+  },
+  formTitle: {
+    fontSize: fontSizes.xl,
+    fontWeight: fontWeights.bold,
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  formSubtitle: {
+    fontSize: fontSizes.sm,
+    color: colors.textMuted,
+    marginBottom: spacing.lg,
+  },
+
+  errorBanner: {
+    backgroundColor: colors.tintDanger,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.tintDangerBorder,
+  },
+  errorText: {
+    fontSize: fontSizes.sm,
+    color: colors.riskHigh,
+    textAlign: 'center',
+  },
+  errorActionBtn: {
+    marginTop: 8,
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  errorActionText: {
+    fontSize: fontSizes.sm,
+    color: colors.primaryDark,
+    fontWeight: fontWeights.semibold,
+    textDecorationLine: 'underline',
+  },
+
+  inputLabel: {
+    fontSize: fontSizes.xs,
+    color: colors.textMuted,
+    fontWeight: fontWeights.semibold,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 6,
+    marginTop: spacing.sm,
+  },
+  input: {
+    backgroundColor: colors.bgElevated || colors.bg,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 14,
+    fontSize: fontSizes.base,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+
+  toggleBtn: {
+    marginTop: spacing.lg,
+    alignItems: 'center',
+  },
+  toggleText: {
+    fontSize: fontSizes.sm,
+    color: colors.textMuted,
+  },
+  toggleHighlight: {
+    color: colors.primary,
+    fontWeight: fontWeights.bold,
+  },
+
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
+    gap: spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    fontSize: fontSizes.xs,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+
+  googleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.bgElevated || colors.bg,
+    borderRadius: radius.md,
+    paddingVertical: 14,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    gap: spacing.md,
+  },
+  googleBtnIcon: {
+    fontSize: fontSizes.xl,
+    fontWeight: fontWeights.extrabold,
+    color: '#4285F4',
+  },
+  googleBtnText: {
+    flex: 1,
+    fontSize: fontSizes.base,
+    color: colors.textSecondary,
+    fontWeight: fontWeights.medium,
+  },
+  comingSoonBadge: {
+    backgroundColor: colors.tintWarning,
+    borderRadius: radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: colors.tintWarningBorder,
+  },
+  comingSoonText: {
+    fontSize: fontSizes.xs,
+    color: colors.riskMedium,
+    fontWeight: fontWeights.semibold,
+  },
+});

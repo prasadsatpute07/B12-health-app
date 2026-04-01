@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B12 Health Tracker — Spatial Teal UI Kit</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════
+   DESIGN TOKENS — Spatial Teal × Clinical Navy
+═══════════════════════════════════════════════════ */
+:root {
+  /* Backgrounds — deep navy spatial layers */
+  --bg-void:      #040C14;
+  --bg-deep:      #060F1A;
+  --bg-mid:       #091520;
+  --bg-surface:   #0D1E2E;
+  --bg-card:      #0F2236;
+  --bg-glass:     rgba(14, 33, 55, 0.72);
+  --bg-glass-lt:  rgba(20, 45, 70, 0.55);
+
+  /* Primary palette — teal / cyan / sky */
+  --teal:         #00C9A7;
+  --teal-lt:      #2DDCBC;
+  --teal-glow:    rgba(0, 201, 167, 0.18);
+  --teal-glow-md: rgba(0, 201, 167, 0.10);
+  --cyan:         #22D3EE;
+  --cyan-glow:    rgba(34, 211, 238, 0.15);
+  --sky:          #38BDF8;
+  --sky-glow:     rgba(56, 189, 248, 0.14);
+
+  /* Accent palette */
+  --aqua:         #06B6D4;
+  --mint:         #34D399;
+  --mint-glow:    rgba(52, 211, 153, 0.15);
+  --violet:       #818CF8;
+  --violet-glow:  rgba(129, 140, 248, 0.14);
+  --amber:        #FBBF24;
+  --amber-glow:   rgba(251, 191, 36, 0.14);
+  --rose:         #FB7185;
+  --rose-glow:    rgba(251, 113, 133, 0.14);
+
+  /* Gradients */
+  --grad-primary: linear-gradient(135deg, #00C9A7 0%, #22D3EE 55%, #38BDF8 100%);
+  --grad-hero:    linear-gradient(135deg, #06B6D4 0%, #00C9A7 50%, #34D399 100%);
+  --grad-card:    linear-gradient(135deg, rgba(0,201,167,0.12) 0%, rgba(34,211,238,0.06) 100%);
+  --grad-deep:    linear-gradient(160deg, #040C14 0%, #07111E 50%, #040C14 100%);
+  --grad-violet:  linear-gradient(135deg, #818CF8 0%, #6366F1 100%);
+  --grad-amber:   linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+
+  /* Text */
+  --text-1: #EFF8FF;
+  --text-2: rgba(220, 240, 255, 0.58);
+  --text-3: rgba(180, 215, 240, 0.32);
+
+  /* Borders */
+  --border-teal:  rgba(0, 201, 167, 0.18);
+  --border-cyan:  rgba(34, 211, 238, 0.15);
+  --border-dim:   rgba(56, 130, 180, 0.12);
+  --border-glass: rgba(100, 180, 220, 0.10);
+
+  /* Phone */
+  --phone-w: 295px;
+  --phone-h: 610px;
+  --r-phone: 40px;
+}
+
+/* ═══════════════════════════════════════════════════
+   RESET + BASE
+═══════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--grad-deep);
+  background-attachment:fixed;
+  color:var(--text-1);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;
+}
+/* Subtle grid overlay */
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,201,167,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,201,167,0.03) 1px,transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;z-index:0;
+}
+
+/* ═══════════════════════════════════════════════════
+   AMBIENT ORBS — teal/cyan spatial light
+═══════════════════════════════════════════════════ */
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;}
+.orb-1{width:600px;height:600px;top:-200px;left:-180px;background:rgba(0,201,167,0.055);}
+.orb-2{width:500px;height:500px;bottom:-150px;right:-150px;background:rgba(34,211,238,0.05);}
+.orb-3{width:380px;height:380px;top:40%;left:48%;background:rgba(56,189,248,0.038);}
+.orb-4{width:280px;height:280px;top:20%;right:10%;background:rgba(52,211,153,0.04);}
+
+/* ═══════════════════════════════════════════════════
+   CANVAS HEADER
+═══════════════════════════════════════════════════ */
+.canvas-header{
+  text-align:center;padding:60px 24px 48px;
+  position:relative;z-index:10;
+}
+.canvas-header .eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--teal-glow);border:1px solid rgba(0,201,167,0.28);
+  border-radius:24px;padding:7px 20px;
+  font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--teal-lt);margin-bottom:20px;
+  backdrop-filter:blur(10px);
+}
+.canvas-header h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(1.8rem,4vw,3.4rem);font-weight:700;
+  letter-spacing:-.05em;line-height:1.1;
+}
+.canvas-header h1 span{
+  background:var(--grad-primary);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;
+}
+.canvas-header p{color:var(--text-2);font-size:.88rem;margin-top:12px;font-weight:400;}
+
+/* ═══════════════════════════════════════════════════
+   SECTION
+═══════════════════════════════════════════════════ */
+.section{position:relative;z-index:10;padding:0 40px 80px;}
+.section-label{
+  display:flex;align-items:center;gap:14px;
+  font-size:.6rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--text-3);margin-bottom:34px;
+}
+.section-label .pill{
+  background:var(--teal-glow);border:1px solid rgba(0,201,167,0.26);
+  border-radius:20px;padding:4px 14px;color:var(--teal-lt);
+  font-size:.6rem;font-weight:700;
+}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border-dim);}
+.screen-row{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start;}
+
+/* ═══════════════════════════════════════════════════
+   PHONE FRAME — spatial glass
+═══════════════════════════════════════════════════ */
+.phone{width:var(--phone-w);flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:12px;}
+.phone-label{
+  font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text-3);background:rgba(0,201,167,0.07);
+  border:1px solid var(--border-teal);border-radius:20px;padding:4px 14px;
+}
+.phone-frame{
+  width:var(--phone-w);height:var(--phone-h);
+  background:var(--bg-mid);border-radius:var(--r-phone);
+  box-shadow:
+    0 0 0 1px rgba(0,201,167,0.14),
+    0 0 40px rgba(0,201,167,0.08),
+    0 40px 90px rgba(0,0,0,0.65),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  overflow:hidden;position:relative;
+  border:1.5px solid rgba(0,201,167,0.14);
+  display:flex;flex-direction:column;
+}
+.phone-frame::before{
+  content:'';position:absolute;inset:0;border-radius:var(--r-phone);
+  background:linear-gradient(160deg,rgba(0,201,167,0.07) 0%,transparent 50%);
+  pointer-events:none;z-index:10;
+}
+/* glass specular on top */
+.phone-frame::after{
+  content:'';position:absolute;
+  top:0;left:12%;right:12%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,201,167,0.25),transparent);
+  z-index:11;
+}
+
+/* Status Bar */
+.sb{
+  height:36px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 20px;
+  font-size:.6rem;font-weight:600;flex-shrink:0;
+  position:relative;z-index:5;
+}
+.sb-dark{background:var(--bg-deep);color:var(--text-3);}
+.sb-trans{background:transparent;color:rgba(220,240,255,0.8);}
+.sb-blend{background:transparent;color:var(--text-3);}
+.notch{
+  width:72px;height:17px;background:#030910;
+  border-radius:10px;position:absolute;
+  top:7px;left:50%;transform:translateX(-50%);
+}
+.sb-icons{display:flex;gap:3px;align-items:center;}
+.bar{width:3px;border-radius:1.5px;background:currentColor;}
+
+/* Screen Content */
+.sc{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative;}
+
+/* Tab Bar */
+.tabs{
+  height:66px;background:var(--bg-mid);border-top:1px solid var(--border-dim);
+  display:flex;align-items:center;padding:0 8px;flex-shrink:0;
+  box-shadow:0 -8px 30px rgba(0,0,0,0.4);
+  backdrop-filter:blur(20px);
+}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+.tab-i{font-size:17px;opacity:.35;}
+.tab-l{font-family:'Space Grotesk',sans-serif;font-size:.52rem;font-weight:600;color:var(--text-3);}
+.tab.on .tab-i{opacity:1;}
+.tab.on .tab-l{color:var(--teal);}
+.tab-pill{
+  background:var(--teal-glow);border:1px solid rgba(0,201,167,0.32);
+  border-radius:20px;padding:5px 14px;
+  display:flex;align-items:center;gap:4px;
+}
+.tab-pill .tab-i{opacity:1;font-size:15px;}
+.tab-pill .tab-l{color:var(--teal);}
+
+/* Common Tags */
+.tag{
+  display:inline-flex;align-items:center;gap:5px;
+  border-radius:20px;padding:4px 12px;
+  font-size:.58rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+}
+.tag-teal{background:var(--teal-glow);border:1px solid rgba(0,201,167,0.28);color:var(--teal-lt);}
+.tag-cyan{background:var(--cyan-glow);border:1px solid rgba(34,211,238,0.24);color:var(--cyan);}
+.tag-mint{background:var(--mint-glow);border:1px solid rgba(52,211,153,0.24);color:var(--mint);}
+.tag-violet{background:var(--violet-glow);border:1px solid rgba(129,140,248,0.24);color:var(--violet);}
+.tag-amber{background:var(--amber-glow);border:1px solid rgba(251,191,36,0.24);color:var(--amber);}
+.tag-rose{background:var(--rose-glow);border:1px solid rgba(251,113,133,0.24);color:var(--rose);}
+
+/* Cards */
+.card{background:var(--bg-card);border:1px solid var(--border-dim);border-radius:16px;}
+.card-glass{
+  background:var(--bg-glass);
+  border:1px solid var(--border-glass);
+  border-radius:16px;
+  backdrop-filter:blur(16px);
+}
+.card-teal{
+  background:linear-gradient(135deg,rgba(0,201,167,0.12) 0%,rgba(34,211,238,0.05) 100%);
+  border:1px solid rgba(0,201,167,0.18);border-radius:16px;
+}
+
+/* Buttons */
+.btn-cta{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  height:50px;border-radius:50px;
+  background:var(--grad-hero);color:#fff;
+  font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:600;
+  box-shadow:0 8px 28px rgba(0,201,167,0.32);
+  cursor:pointer;letter-spacing:-.01em;
+}
+.btn-outline{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  height:46px;border-radius:50px;
+  border:1.5px solid rgba(0,201,167,0.30);
+  background:rgba(0,201,167,0.07);
+  color:var(--teal-lt);font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:600;
+}
+
+/* Chips */
+.chip{
+  height:30px;padding:0 13px;border-radius:50px;
+  border:1px solid var(--border-dim);
+  font-size:.64rem;font-weight:600;
+  display:inline-flex;align-items:center;
+  color:var(--text-2);background:var(--bg-surface);
+  font-family:'Space Grotesk',sans-serif;
+}
+.chip.on{background:var(--teal-glow);border-color:rgba(0,201,167,0.36);color:var(--teal-lt);}
+
+/* Progress bars */
+.mini-bar{height:5px;border-radius:3px;background:rgba(255,255,255,0.06);overflow:hidden;}
+.mini-fill{height:100%;border-radius:3px;}
+.fill-teal{background:linear-gradient(90deg,var(--teal),var(--cyan));}
+.fill-mint{background:linear-gradient(90deg,var(--mint),#059669);}
+.fill-violet{background:linear-gradient(90deg,var(--violet),#6366F1);}
+.fill-amber{background:linear-gradient(90deg,var(--amber),#F59E0B);}
+
+/* Labels */
+.lbl-xs{font-size:.56rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);}
+.lbl-sm{font-size:.68rem;font-weight:500;color:var(--text-2);}
+.lbl-val{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text-1);}
+
+/* ══════════════════════════════════════════════════════
+   ONBOARDING 1 — SPLASH
+══════════════════════════════════════════════════════ */
+.ob1-bg{
+  flex:1;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding:0 22px 28px;
+}
+.ob1-bg::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse at 50% 22%,rgba(0,201,167,0.22) 0%,transparent 60%),
+    radial-gradient(ellipse at 80% 60%,rgba(34,211,238,0.08) 0%,transparent 50%),
+    var(--bg-void);
+}
+.ob1-ring{
+  position:absolute;width:240px;height:240px;border-radius:50%;
+  top:-20px;left:50%;transform:translateX(-50%);
+  background:radial-gradient(circle,rgba(0,201,167,0.16) 0%,transparent 70%);
+  border:1px solid rgba(0,201,167,0.2);
+}
+.ob1-ring2{
+  position:absolute;width:160px;height:160px;border-radius:50%;
+  top:20px;left:50%;transform:translateX(-50%);
+  border:1px solid rgba(0,201,167,0.24);
+  background:radial-gradient(circle,rgba(0,201,167,0.08) 0%,transparent 70%);
+}
+.ob1-ring3{
+  position:absolute;width:320px;height:320px;border-radius:50%;
+  top:-60px;left:50%;transform:translateX(-50%);
+  border:1px solid rgba(34,211,238,0.1);
+}
+.ob1-icon{font-size:58px;position:relative;z-index:2;margin-bottom:2px;}
+.ob1-title{
+  font-family:'Space Grotesk',sans-serif;font-size:1.45rem;font-weight:700;
+  color:var(--text-1);text-align:center;line-height:1.2;position:relative;z-index:2;
+}
+.ob1-title span{background:var(--grad-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ob1-sub{font-size:.74rem;color:var(--text-2);text-align:center;margin-top:8px;line-height:1.5;position:relative;z-index:2;}
+.ob1-dots{display:flex;gap:6px;margin-top:18px;position:relative;z-index:2;}
+.ob1-dot{width:22px;height:5px;border-radius:3px;background:var(--teal);opacity:.9;}
+.ob1-dot.off{width:5px;opacity:.2;background:var(--text-3);}
+.ob1-btns{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:22px;position:relative;z-index:2;}
+
+/* ══════════════════════════════════════════════════════
+   ONBOARDING 2 — QUIZ
+══════════════════════════════════════════════════════ */
+.ob2-hdr{
+  padding:18px 18px 16px;
+  background:linear-gradient(160deg,rgba(0,201,167,0.12) 0%,transparent 65%);
+  border-bottom:1px solid var(--border-dim);
+}
+.ob2-hdr h2{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-1);}
+.ob2-hdr p{font-size:.7rem;color:var(--text-2);margin-top:4px;}
+.ob2-prog{display:flex;gap:4px;margin-top:12px;}
+.ob2-pd{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,0.07);}
+.ob2-pd.done{background:var(--teal);}
+.ob2-body{flex:1;padding:16px;display:flex;flex-direction:column;gap:13px;overflow:hidden;}
+.ob2-q{font-family:'Space Grotesk',sans-serif;font-size:.9rem;font-weight:600;color:var(--text-1);line-height:1.35;}
+.ob2-opts{display:flex;flex-direction:column;gap:8px;}
+.ob2-opt{
+  padding:11px 14px;border-radius:13px;
+  background:var(--bg-card);border:1.5px solid var(--border-dim);
+  font-size:.76rem;font-weight:500;color:var(--text-2);
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+}
+.ob2-opt.sel{background:var(--teal-glow);border-color:rgba(0,201,167,0.4);color:var(--text-1);}
+.ob2-opt-ico{font-size:16px;}
+.ob2-opt-check{margin-left:auto;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border-dim);display:flex;align-items:center;justify-content:center;font-size:10px;}
+.ob2-opt.sel .ob2-opt-check{background:var(--teal);border-color:var(--teal);color:#fff;}
+
+/* ══════════════════════════════════════════════════════
+   ONBOARDING 3 — RISK PREVIEW
+══════════════════════════════════════════════════════ */
+.sp-hdr{padding:16px 18px 14px;border-bottom:1px solid var(--border-dim);}
+.sp-hdr h2{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-1);}
+.sp-hdr p{font-size:.7rem;color:var(--text-2);margin-top:3px;}
+.sp-body{flex:1;padding:14px;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.sp-gauge-card{
+  background:var(--bg-glass);border:1px solid rgba(0,201,167,0.16);
+  border-radius:18px;padding:16px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  backdrop-filter:blur(12px);
+}
+.sp-gauge{
+  width:88px;height:88px;border-radius:50%;
+  background:conic-gradient(var(--amber) 0% 55%,rgba(255,255,255,0.06) 55%);
+  display:flex;align-items:center;justify-content:center;position:relative;
+}
+.sp-gauge::after{content:'';width:58px;height:58px;border-radius:50%;background:var(--bg-card);position:absolute;}
+.sp-gauge-val{position:relative;z-index:1;font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;color:var(--amber);}
+.sp-badge{
+  padding:4px 16px;border-radius:20px;
+  background:var(--amber-glow);border:1px solid rgba(251,191,36,0.3);
+  color:var(--amber);font-family:'Space Grotesk',sans-serif;font-size:.66rem;font-weight:700;letter-spacing:.06em;
+}
+.sp-lock{
+  background:var(--bg-card);border:1px solid var(--border-dim);border-radius:16px;
+  padding:14px;position:relative;overflow:hidden;
+}
+.sp-blur{display:flex;flex-direction:column;gap:8px;opacity:0.2;}
+.sp-blur-row{display:flex;gap:8px;}
+.sp-blur-blk{height:8px;border-radius:4px;background:var(--text-2);}
+.sp-lock-over{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  background:rgba(6,15,26,0.75);backdrop-filter:blur(4px);border-radius:16px;
+}
+.sp-lock-txt{font-size:.72rem;color:var(--text-2);text-align:center;font-weight:500;line-height:1.4;}
+.sp-cta-card{
+  background:var(--grad-card);border:1px solid rgba(0,201,167,0.2);border-radius:16px;padding:14px;
+}
+.sp-cta-card p{font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:700;color:var(--text-1);margin-bottom:5px;}
+.sp-cta-card span{font-size:.68rem;color:var(--text-2);line-height:1.4;display:block;margin-bottom:12px;}
+
+/* ══════════════════════════════════════════════════════
+   ONBOARDING 4 — FULL RESULTS
+══════════════════════════════════════════════════════ */
+.res-hdr{padding:14px 18px;border-bottom:1px solid var(--border-dim);}
+.res-hdr h2{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-1);}
+.res-body{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:9px;overflow:hidden;}
+.res-risk-card{
+  background:var(--amber-glow);border:1px solid rgba(251,191,36,0.24);
+  border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;
+}
+.res-risk-ico{font-size:24px;}
+.res-risk-lvl{font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:700;color:var(--amber);}
+.res-risk-pct{font-size:.72rem;color:var(--text-2);margin-top:2px;}
+.res-risk-pct span{color:var(--text-3);}
+.res-cat{display:flex;align-items:center;gap:8px;}
+.res-cat-n{font-size:.66rem;color:var(--text-2);font-weight:500;width:54px;flex-shrink:0;}
+.res-track{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,0.06);overflow:hidden;}
+.res-fill{height:100%;border-radius:3px;}
+.res-pct{font-size:.62rem;color:var(--text-3);font-weight:600;width:28px;text-align:right;flex-shrink:0;}
+.res-sug{
+  background:var(--bg-card);border:1px solid var(--border-dim);
+  border-radius:13px;padding:10px 12px;display:flex;gap:9px;align-items:flex-start;
+}
+.res-sug-ico{font-size:15px;margin-top:1px;}
+.res-sug-txt{font-size:.68rem;color:var(--text-2);line-height:1.4;}
+.res-sug-txt strong{color:var(--text-1);display:block;margin-bottom:2px;font-size:.72rem;}
+
+/* ══════════════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════════════ */
+.dash-hero{
+  padding:16px 18px 14px;
+  background:linear-gradient(160deg,rgba(0,201,167,0.14) 0%,transparent 65%);
+  border-bottom:1px solid var(--border-dim);
+  position:relative;overflow:hidden;
+}
+.dash-hero::after{
+  content:'';position:absolute;right:-20px;top:-30px;
+  width:160px;height:160px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,201,167,0.12),transparent 70%);
+  pointer-events:none;
+}
+.dash-hello{font-size:.72rem;color:var(--teal);font-weight:600;letter-spacing:.04em;}
+.dash-name{font-family:'Space Grotesk',sans-serif;font-size:1.15rem;font-weight:700;color:var(--text-1);margin-top:2px;}
+.dash-streak{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 12px;
+  background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.22);border-radius:20px;
+  font-size:.62rem;font-weight:600;color:var(--amber);}
+.dash-body{flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:9px;overflow:hidden;}
+.dash-stats{display:flex;gap:6px;}
+.dash-stat{
+  flex:1;background:var(--bg-glass);border:1px solid var(--border-glass);
+  border-radius:14px;padding:9px 8px;text-align:center;
+  backdrop-filter:blur(10px);
+}
+.dash-stat-ico{font-size:16px;margin-bottom:3px;}
+.dash-stat-val{font-family:'Space Grotesk',sans-serif;font-size:1.0rem;font-weight:700;color:var(--text-1);}
+.dash-stat-lbl{font-size:.52rem;color:var(--text-3);font-weight:600;margin-top:2px;}
+.dash-cta{
+  background:var(--grad-card);border:1px solid rgba(0,201,167,0.22);
+  border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.dash-cta-lft p{font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:700;color:var(--text-1);}
+.dash-cta-lft span{font-size:.64rem;color:var(--text-2);}
+.dash-cta-btn{
+  background:var(--grad-hero);color:#fff;border-radius:20px;
+  padding:7px 16px;font-family:'Space Grotesk',sans-serif;font-size:.72rem;font-weight:600;
+  white-space:nowrap;flex-shrink:0;
+  box-shadow:0 4px 14px rgba(0,201,167,0.28);
+}
+.dash-insight{
+  background:var(--bg-glass);border:1px solid rgba(129,140,248,0.18);
+  border-radius:14px;padding:11px 13px;
+  backdrop-filter:blur(12px);
+}
+.dash-insight-lbl{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--violet);margin-bottom:5px;}
+.dash-insight p{font-size:.68rem;color:var(--text-2);line-height:1.45;}
+.dash-shortcuts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.dash-sc{
+  background:var(--bg-card);border:1px solid var(--border-dim);
+  border-radius:13px;padding:9px 4px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.dash-sc-ico{font-size:17px;}
+.dash-sc-txt{font-size:.52rem;color:var(--text-3);font-weight:600;text-align:center;}
+
+/* ══════════════════════════════════════════════════════
+   CHECK-IN
+══════════════════════════════════════════════════════ */
+.ci-hdr{
+  padding:14px 18px 14px;
+  background:linear-gradient(160deg,rgba(0,201,167,0.12) 0%,transparent 65%);
+  border-bottom:1px solid var(--border-dim);
+}
+.ci-hdr h2{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-1);}
+.ci-hdr p{font-size:.7rem;color:var(--text-2);margin-top:3px;}
+.ci-prog{display:flex;gap:4px;margin-top:12px;}
+.ci-pd{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,0.07);}
+.ci-pd.done{background:var(--teal);}
+.ci-body{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.ci-q{font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:600;color:var(--text-1);line-height:1.35;}
+.ci-scale{display:flex;gap:5px;}
+.ci-btn{
+  flex:1;aspect-ratio:1;border-radius:11px;
+  background:var(--bg-card);border:1px solid var(--border-dim);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+}
+.ci-btn.on{border-color:rgba(0,201,167,0.38);background:var(--teal-glow-md);}
+.ci-btn-e{font-size:15px;}
+.ci-btn-l{font-size:.52rem;color:var(--text-3);font-weight:600;text-align:center;}
+.ci-btn.on .ci-btn-l{color:var(--teal);}
+.ci-metric{background:var(--bg-card);border:1px solid var(--border-dim);border-radius:12px;padding:9px 12px;}
+.ci-metric-n{font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:5px;}
+
+/* ══════════════════════════════════════════════════════
+   WEEKLY PROGRESS
+══════════════════════════════════════════════════════ */
+.wp-hdr{padding:14px 18px 14px;border-bottom:1px solid var(--border-dim);}
+.wp-hdr h2{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-1);}
+.wp-hdr p{font-size:.7rem;color:var(--text-2);margin-top:3px;}
+.wp-body{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.wp-chart-lbl{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:7px;}
+.wp-bars{display:flex;align-items:flex-end;gap:6px;height:60px;}
+.wp-bw{display:flex;flex-direction:column;align-items:center;flex:1;gap:5px;}
+.wp-b{border-radius:4px 4px 0 0;width:100%;}
+.wp-bd{font-size:.54rem;color:var(--text-3);font-weight:600;}
+.wp-sg{display:flex;gap:7px;}
+.wp-s{flex:1;background:var(--bg-glass);border:1px solid var(--border-glass);border-radius:13px;padding:9px 8px;text-align:center;backdrop-filter:blur(8px);}
+.wp-s-ico{font-size:15px;}
+.wp-s-val{font-family:'Space Grotesk',sans-serif;font-size:.98rem;font-weight:700;color:var(--text-1);}
+.wp-s-lbl{font-size:.54rem;color:var(--text-3);font-weight:600;}
+.wp-pattern{
+  background:var(--bg-card);border:1px solid var(--border-dim);
+  border-radius:14px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;
+}
+.wp-pattern-ico{font-size:14px;margin-top:1px;}
+.wp-pattern-txt{font-size:.68rem;color:var(--text-2);line-height:1.45;}
+
+/* ══════════════════════════════════════════════════════
+   B12 FOODS
+══════════════════════════════════════════════════════ */
+.foods-hdr{padding:14px 18px 14px;border-bottom:1px solid var(--border-dim);}
+.foods-hdr h2{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-1);}
+.foods-hdr p{font-size:.7rem;color:var(--text-2);margin-top:3px;}
+.foods-filter{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.foods-body{flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.foods-card{
+  background:var(--bg-glass);border:1px solid var(--border-glass);
+  border-radius:14px;padding:11px 12px;
+  display:flex;align-items:center;gap:10px;
+  backdrop-filter:blur(10px);
+}
+.foods-ico{font-size:26px;flex-shrink:0;}
+.foods-name{font-size:.78rem;font-weight:600;color:var(--text-1);}
+.foods-b12{font-size:.62rem;color:var(--teal);font-weight:600;margin-top:1px;}
+.foods-bar{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;margin-top:6px;}
+.foods-fill{height:100%;border-radius:2px;background:var(--grad-hero);}
+.foods-note{font-size:.6rem;color:var(--text-3);margin-top:4px;}
+
+/* ══════════════════════════════════════════════════════
+   SUPPLEMENT TRACKER
+══════════════════════════════════════════════════════ */
+.supp-hdr{
+  padding:14px 18px 14px;
+  background:linear-gradient(160deg,rgba(129,140,248,0.12) 0%,transparent 65%);
+  border-bottom:1px solid var(--border-dim);
+}
+.supp-hdr h2{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-1);}
+.supp-body{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:9px;overflow:hidden;}
+.supp-today{
+  background:linear-gradient(135deg,rgba(129,140,248,0.14) 0%,rgba(99,102,241,0.07) 100%);
+  border:1px solid rgba(129,140,248,0.22);border-radius:16px;
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
+}
+.supp-today-ico{font-size:28px;}
+.supp-today-val{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700;color:var(--violet);}
+.supp-today-lbl{font-size:.68rem;color:var(--text-2);}
+.supp-btn{
+  margin-left:auto;height:34px;padding:0 14px;border-radius:17px;
+  background:var(--grad-violet);color:#fff;
+  font-family:'Space Grotesk',sans-serif;font-size:.68rem;font-weight:600;
+  display:flex;align-items:center;gap:5px;white-space:nowrap;
+}
+.supp-week{background:var(--bg-card);border:1px solid var(--border-dim);border-radius:14px;padding:11px 13px;}
+.supp-week-lbl{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;}
+.supp-days{display:flex;gap:4px;}
+.supp-day{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.supp-day-circle{
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,0.05);border:1.5px solid var(--border-dim);
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+}
+.supp-day-circle.done{background:rgba(0,201,167,0.18);border-color:rgba(0,201,167,0.38);color:var(--teal);}
+.supp-day-circle.today{background:rgba(0,201,167,0.26);border-color:var(--teal);}
+.supp-day-lbl{font-size:.52rem;color:var(--text-3);font-weight:600;}
+.supp-history{background:var(--bg-card);border:1px solid var(--border-dim);border-radius:14px;overflow:hidden;}
+.supp-row{display:flex;align-items:center;gap:9px;padding:10px 13px;border-bottom:1px solid var(--border-dim);}
+.supp-row:last-child{border-bottom:none;}
+.supp-row-ico{font-size:18px;}
+.supp-row-name{font-size:.74rem;font-weight:600;color:var(--text-1);flex:1;}
+.supp-row-dose{font-size:.64rem;color:var(--teal);font-weight:600;}
+.supp-row-time{font-size:.6rem;color:var(--text-3);}
+
+/* ══════════════════════════════════════════════════════
+   SYMPTOM LOG
+══════════════════════════════════════════════════════ */
+.sym-hdr{padding:14px 18px 14px;border-bottom:1px solid var(--border-dim);}
+.sym-hdr h2{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-1);}
+.sym-body{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.sym-date{
+  background:var(--grad-card);
+  border:1px solid rgba(0,201,167,0.18);border-radius:14px;padding:10px 13px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sym-date-lbl{font-family:'Space Grotesk',sans-serif;font-size:.84rem;font-weight:700;color:var(--text-1);}
+.sym-date-sub{font-size:.62rem;color:var(--text-3);margin-top:2px;}
+.sym-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.sym-chip{
+  background:var(--bg-card);border:1px solid var(--border-dim);
+  border-radius:13px;padding:9px 11px;
+  display:flex;align-items:center;gap:8px;cursor:pointer;
+}
+.sym-chip.active{border-color:rgba(0,201,167,0.38);background:var(--teal-glow-md);}
+.sym-chip-ico{font-size:16px;}
+.sym-chip-lbl{font-size:.7rem;font-weight:500;color:var(--text-2);}
+.sym-chip.active .sym-chip-lbl{color:var(--teal-lt);}
+.sym-severity{background:var(--bg-card);border:1px solid var(--border-dim);border-radius:14px;padding:11px 13px;}
+.sym-sev-lbl{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;}
+.sym-sev-btns{display:flex;gap:6px;}
+.sym-sev-btn{
+  flex:1;height:30px;border-radius:50px;
+  background:var(--bg-surface);border:1.5px solid var(--border-dim);
+  font-size:.66rem;font-weight:600;color:var(--text-2);
+  display:flex;align-items:center;justify-content:center;
+}
+.sym-sev-btn.on-low{background:var(--teal-glow);border-color:rgba(0,201,167,0.36);color:var(--teal);}
+.sym-sev-btn.on-med{background:var(--amber-glow);border-color:rgba(251,191,36,0.36);color:var(--amber);}
+.sym-sev-btn.on-high{background:var(--rose-glow);border-color:rgba(251,113,133,0.36);color:var(--rose);}
+
+/* ══════════════════════════════════════════════════════
+   PROFILE
+══════════════════════════════════════════════════════ */
+.prof-hdr{
+  padding:18px 18px 16px;
+  background:linear-gradient(160deg,rgba(34,211,238,0.12) 0%,transparent 65%);
+  border-bottom:1px solid var(--border-dim);
+  display:flex;align-items:center;gap:12px;
+}
+.prof-av{
+  width:52px;height:52px;border-radius:18px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(0,201,167,0.3),rgba(34,211,238,0.3));
+  border:1.5px solid rgba(0,201,167,0.3);
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+}
+.prof-name{font-family:'Space Grotesk',sans-serif;font-size:.96rem;font-weight:700;color:var(--text-1);}
+.prof-email{font-size:.66rem;color:var(--text-3);margin-top:2px;}
+.prof-edit{
+  margin-left:auto;padding:5px 13px;border-radius:20px;
+  background:var(--teal-glow);border:1px solid rgba(0,201,167,0.24);
+  font-size:.62rem;font-weight:600;color:var(--teal-lt);white-space:nowrap;
+}
+.prof-body{flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.prof-sg{display:flex;gap:6px;}
+.prof-s{flex:1;background:var(--bg-glass);border:1px solid var(--border-glass);border-radius:13px;padding:9px 8px;text-align:center;backdrop-filter:blur(8px);}
+.prof-s-val{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text-1);}
+.prof-s-lbl{font-size:.54rem;color:var(--text-3);font-weight:600;}
+.prof-list{background:var(--bg-card);border:1px solid var(--border-dim);border-radius:14px;overflow:hidden;}
+.prof-row{display:flex;align-items:center;gap:9px;padding:10px 13px;border-bottom:1px solid var(--border-dim);}
+.prof-row:last-child{border-bottom:none;}
+.prof-row-ico{font-size:14px;opacity:.65;}
+.prof-row-lbl{font-size:.72rem;font-weight:500;color:var(--text-2);flex:1;}
+.prof-row-val{font-size:.68rem;font-weight:600;color:var(--text-3);}
+.prof-row-chev{font-size:14px;color:var(--text-3);margin-left:6px;opacity:.5;}
+
+/* ══════════════════════════════════════════════════════
+   NOTIFICATIONS
+══════════════════════════════════════════════════════ */
+.notif-hdr{padding:14px 18px;border-bottom:1px solid var(--border-dim);}
+.notif-hdr h2{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-1);}
+.notif-body{flex:1;padding:10px 12px;display:flex;flex-direction:column;gap:6px;overflow:hidden;}
+.notif-item{
+  background:var(--bg-card);border:1px solid var(--border-dim);
+  border-radius:14px;padding:11px 13px;display:flex;gap:10px;align-items:flex-start;
+}
+.notif-item.unread{border-color:rgba(0,201,167,0.22);background:rgba(0,201,167,0.05);}
+.notif-ico{width:36px;height:36px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.notif-ico-teal{background:rgba(0,201,167,0.14);}
+.notif-ico-cyan{background:rgba(34,211,238,0.12);}
+.notif-ico-violet{background:rgba(129,140,248,0.14);}
+.notif-ico-amber{background:rgba(251,191,36,0.12);}
+.notif-title{font-size:.74rem;font-weight:600;color:var(--text-1);}
+.notif-body-txt{font-size:.66rem;color:var(--text-2);margin-top:2px;line-height:1.4;}
+.notif-time{font-size:.58rem;color:var(--text-3);margin-top:4px;}
+.notif-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:5px;}
+
+/* ══════════════════════════════════════════════════════
+   SETTINGS
+══════════════════════════════════════════════════════ */
+.set-hdr{padding:14px 18px;border-bottom:1px solid var(--border-dim);}
+.set-hdr h2{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text-1);}
+.set-body{flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:6px;overflow:hidden;}
+.set-section-lbl{font-size:.58rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);padding:4px 0 6px;}
+.set-list{background:var(--bg-card);border:1px solid var(--border-dim);border-radius:14px;overflow:hidden;}
+.set-row{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--border-dim);}
+.set-row:last-child{border-bottom:none;}
+.set-row-ico{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.set-row-lbl{font-size:.74rem;font-weight:500;color:var(--text-2);flex:1;}
+.set-row-val{font-size:.66rem;color:var(--text-3);}
+.set-row-chev{font-size:14px;color:var(--text-3);opacity:.5;}
+.set-toggle{width:36px;height:20px;border-radius:10px;background:var(--teal);position:relative;flex-shrink:0;}
+.set-toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:8px;background:#fff;top:2px;right:2px;}
+.set-toggle.off{background:rgba(255,255,255,0.1);}
+.set-toggle.off::after{right:auto;left:2px;}
+
+/* ═══════════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+@keyframes glow{0%,100%{opacity:.6;}50%{opacity:1;}}
+.phone{animation:fadeUp .55s ease both;}
+.phone:nth-child(1){animation-delay:.04s;}
+.phone:nth-child(2){animation-delay:.11s;}
+.phone:nth-child(3){animation-delay:.18s;}
+.phone:nth-child(4){animation-delay:.25s;}
+.phone:nth-child(5){animation-delay:.32s;}
+.phone:nth-child(6){animation-delay:.39s;}
+.phone:nth-child(7){animation-delay:.46s;}
+</style>
+</head>
+<body>
+
+<!-- ambient orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<div class="orb orb-4"></div>
+
+<!-- ═══ CANVAS HEADER ═══ -->
+<div class="canvas-header">
+  <div class="eyebrow">◈ Spatial Healthcare · Teal × Navy · AI-Powered</div>
+  <h1>B12 Health Tracker<br><span>Spatial Teal UI Kit</span></h1>
+  <p>13 Screens &nbsp;·&nbsp; Dark Spatial UI &nbsp;·&nbsp; Teal / Cyan / Navy Palette</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION A — ONBOARDING
+════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label"><div class="pill">A</div>Onboarding Flow</div>
+  <div class="screen-row">
+
+    <!-- 1 · Splash -->
+    <div class="phone">
+      <div class="phone-label">01 · Splash</div>
+      <div class="phone-frame">
+        <div class="sb sb-dark"><span>9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px"></div><div class="bar" style="height:8px"></div><div class="bar" style="height:11px"></div><span style="font-size:9px;margin-left:4px;opacity:.3">🔋</span></div></div>
+        <div class="ob1-bg">
+          <div class="ob1-ring"></div>
+          <div class="ob1-ring2"></div>
+          <div class="ob1-ring3"></div>
+          <div class="ob1-icon">💊</div>
+          <div class="ob1-title">Know Your<br><span>B12 Status</span></div>
+          <div class="ob1-sub">Understand your vitamin B12 health, track symptoms, and get personalized AI insights in minutes.</div>
+          <div class="ob1-dots">
+            <div class="ob1-dot"></div>
+            <div class="ob1-dot off"></div>
+            <div class="ob1-dot off"></div>
+          </div>
+          <div class="ob1-btns">
+            <div class="btn-cta">Get Started — It's Free ◈</div>
+            <div class="btn-outline">I already have an account</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 · Quiz -->
+    <div class="phone">
+      <div class="phone-label">02 · Risk Quiz</div>
+      <div class="phone-frame">
+        <div class="sb sb-dark"><span>9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px"></div><div class="bar" style="height:8px"></div><div class="bar" style="height:11px"></div><span style="font-size:9px;margin-left:4px;opacity:.3">🔋</span></div></div>
+        <div class="sc">
+          <div class="ob2-hdr">
+            <h2>Quick Risk Assessment</h2>
+            <p>5 questions · takes about 2 minutes</p>
+            <div class="ob2-prog">
+              <div class="ob2-pd done"></div><div class="ob2-pd done"></div>
+              <div class="ob2-pd done"></div><div class="ob2-pd"></div><div class="ob2-pd"></div>
+            </div>
+          </div>
+          <div class="ob2-body">
+            <div class="ob2-q">What best describes your typical diet?</div>
+            <div class="ob2-opts">
+              <div class="ob2-opt sel">
+                <span class="ob2-opt-ico">🥩</span>
+                <span>Omnivore — I eat meat and dairy</span>
+                <div class="ob2-opt-check">✓</div>
+              </div>
+              <div class="ob2-opt">
+                <span class="ob2-opt-ico">🐟</span>
+                <span>Pescatarian — fish but no meat</span>
+                <div class="ob2-opt-check"></div>
+              </div>
+              <div class="ob2-opt">
+                <span class="ob2-opt-ico">🥗</span>
+                <span>Vegetarian — no meat or fish</span>
+                <div class="ob2-opt-check"></div>
+              </div>
+              <div class="ob2-opt">
+                <span class="ob2-opt-ico">🌱</span>
+                <span>Vegan — plant-based only</span>
+                <div class="ob2-opt-check"></div>
+              </div>
+            </div>
+            <div style="margin-top:auto;">
+              <div class="btn-cta">Continue →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 · Risk Preview -->
+    <div class="phone">
+      <div class="phone-label">03 · Risk Preview</div>
+      <div class="phone-frame">
+        <div class="sb sb-dark"><span>9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px"></div><div class="bar" style="height:8px"></div><div class="bar" style="height:11px"></div><span style="font-size:9px;margin-left:4px;opacity:.3">🔋</span></div></div>
+        <div class="sc">
+          <div class="sp-hdr">
+            <h2>Your B12 Risk Score</h2>
+            <p>Based on your responses — partial preview</p>
+          </div>
+          <div class="sp-body">
+            <div class="sp-gauge-card">
+              <div class="sp-gauge"><span class="sp-gauge-val">55%</span></div>
+              <div class="sp-badge">⚠ Moderate Risk</div>
+              <div style="font-size:.68rem;color:var(--text-2);text-align:center;line-height:1.4">Your dietary patterns and age suggest a moderate B12 deficiency risk.</div>
+            </div>
+            <div class="sp-lock">
+              <div class="sp-blur">
+                <div class="sp-blur-row"><div class="sp-blur-blk" style="width:44px"></div><div class="sp-blur-blk" style="width:70px"></div><div class="sp-blur-blk" style="width:30px"></div></div>
+                <div class="sp-blur-row"><div class="sp-blur-blk" style="width:60px"></div><div class="sp-blur-blk" style="width:40px"></div></div>
+                <div class="sp-blur-row"><div class="sp-blur-blk" style="width:35px"></div><div class="sp-blur-blk" style="width:55px"></div></div>
+              </div>
+              <div class="sp-lock-over">
+                <span style="font-size:16px">🔒</span>
+                <span class="sp-lock-txt">Full breakdown unlocked<br>after sign up</span>
+              </div>
+            </div>
+            <div class="sp-cta-card">
+              <p>Unlock your full personalized report</p>
+              <span>Get AI insights, dietary tips, and symptom tracking — all free.</span>
+              <div class="btn-cta">Create Free Account ◈</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 · Full Results -->
+    <div class="phone">
+      <div class="phone-label">04 · Full Results</div>
+      <div class="phone-frame">
+        <div class="sb sb-dark"><span>9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px"></div><div class="bar" style="height:8px"></div><div class="bar" style="height:11px"></div><span style="font-size:9px;margin-left:4px;opacity:.3">🔋</span></div></div>
+        <div class="sc">
+          <div class="res-hdr"><h2>Your Detailed Report</h2></div>
+          <div class="res-body">
+            <div class="res-risk-card">
+              <div class="res-risk-ico">⚠️</div>
+              <div>
+                <div class="res-risk-lvl">Moderate Risk</div>
+                <div class="res-risk-pct">55% <span>deficiency risk</span></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <div class="res-cat">
+                <span class="res-cat-n">Diet</span>
+                <div class="res-track"><div class="res-fill" style="width:65%;background:linear-gradient(90deg,var(--teal),var(--cyan))"></div></div>
+                <span class="res-pct">65%</span>
+              </div>
+              <div class="res-cat">
+                <span class="res-cat-n">Symptoms</span>
+                <div class="res-track"><div class="res-fill" style="width:50%;background:linear-gradient(90deg,var(--amber),#F59E0B)"></div></div>
+                <span class="res-pct">50%</span>
+              </div>
+              <div class="res-cat">
+                <span class="res-cat-n">Age</span>
+                <div class="res-track"><div class="res-fill" style="width:40%;background:linear-gradient(90deg,var(--violet),#6366F1)"></div></div>
+                <span class="res-pct">40%</span>
+              </div>
+              <div class="res-cat">
+                <span class="res-cat-n">Lifestyle</span>
+                <div class="res-track"><div class="res-fill" style="width:35%;background:linear-gradient(90deg,var(--mint),#059669)"></div></div>
+                <span class="res-pct">35%</span>
+              </div>
+            </div>
+            <div class="res-sug">
+              <span class="res-sug-ico">🥗</span>
+              <div class="res-sug-txt"><strong>Improve Your Diet</strong>Add more B12-rich foods like salmon, eggs, and fortified cereals.</div>
+            </div>
+            <div class="res-sug">
+              <span class="res-sug-ico">💊</span>
+              <div class="res-sug-txt"><strong>Consider Supplements</strong>A daily B12 supplement (1000 mcg) may help maintain healthy levels.</div>
+            </div>
+            <div class="btn-cta">Start Tracking →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION B — CORE APP
+════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label"><div class="pill">B</div>Core App Screens</div>
+  <div class="screen-row">
+
+    <!-- 5 · Dashboard -->
+    <div class="phone">
+      <div class="phone-label">05 · Dashboard</div>
+      <div class="phone-frame">
+        <div class="sb sb-blend"><span style="opacity:.4">9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:8px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:11px;background:rgba(220,240,255,.15)"></div><span style="font-size:9px;margin-left:4px;opacity:.25">🔋</span></div></div>
+        <div class="sc">
+          <div class="dash-hero">
+            <div class="dash-hello">Good morning 🌤️</div>
+            <div class="dash-name">Alex Johnson</div>
+            <div class="dash-streak">🔥 7-day streak</div>
+          </div>
+          <div class="dash-body">
+            <div class="dash-stats">
+              <div class="dash-stat">
+                <div class="dash-stat-ico">⚡</div>
+                <div class="dash-stat-val">7.2</div>
+                <div class="dash-stat-lbl">Energy</div>
+              </div>
+              <div class="dash-stat">
+                <div class="dash-stat-ico">😊</div>
+                <div class="dash-stat-val">8.1</div>
+                <div class="dash-stat-lbl">Mood</div>
+              </div>
+              <div class="dash-stat">
+                <div class="dash-stat-ico">💊</div>
+                <div class="dash-stat-val">2.4μg</div>
+                <div class="dash-stat-lbl">B12 Today</div>
+              </div>
+            </div>
+            <div class="dash-cta">
+              <div class="dash-cta-lft">
+                <p>Today's Check-in</p>
+                <span>Not done yet · 3 min</span>
+              </div>
+              <div class="dash-cta-btn">Start →</div>
+            </div>
+            <div class="dash-insight">
+              <div class="dash-insight-lbl">✦ AI Insight</div>
+              <p>Your energy has been improving this week. Keep up the B12 supplement and prioritise sleep for best results.</p>
+            </div>
+            <div class="dash-shortcuts">
+              <div class="dash-sc"><div class="dash-sc-ico">🥗</div><div class="dash-sc-txt">B12 Foods</div></div>
+              <div class="dash-sc"><div class="dash-sc-ico">📈</div><div class="dash-sc-txt">Progress</div></div>
+              <div class="dash-sc"><div class="dash-sc-ico">💊</div><div class="dash-sc-txt">Supplements</div></div>
+              <div class="dash-sc"><div class="dash-sc-ico">📋</div><div class="dash-sc-txt">History</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab on"><div class="tab-i">🏠</div><div class="tab-l">Home</div></div>
+          <div class="tab"><div class="tab-i">✅</div><div class="tab-l">Check-in</div></div>
+          <div class="tab"><div class="tab-i">📈</div><div class="tab-l">Progress</div></div>
+          <div class="tab"><div class="tab-i">👤</div><div class="tab-l">Profile</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 · Daily Check-in -->
+    <div class="phone">
+      <div class="phone-label">06 · Daily Check-in</div>
+      <div class="phone-frame">
+        <div class="sb sb-blend"><span style="opacity:.4">9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:8px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:11px;background:rgba(220,240,255,.15)"></div><span style="font-size:9px;margin-left:4px;opacity:.25">🔋</span></div></div>
+        <div class="sc">
+          <div class="ci-hdr">
+            <h2>Daily Check-in</h2>
+            <p>Sunday, March 29 · Question 2 of 4</p>
+            <div class="ci-prog">
+              <div class="ci-pd done"></div><div class="ci-pd done"></div>
+              <div class="ci-pd"></div><div class="ci-pd"></div>
+            </div>
+          </div>
+          <div class="ci-body">
+            <div class="ci-q">How would you rate your energy levels today?</div>
+            <div class="ci-scale">
+              <div class="ci-btn"><div class="ci-btn-e">😩</div><div class="ci-btn-l">Very Low</div></div>
+              <div class="ci-btn"><div class="ci-btn-e">😔</div><div class="ci-btn-l">Low</div></div>
+              <div class="ci-btn on"><div class="ci-btn-e">🙂</div><div class="ci-btn-l">Moderate</div></div>
+              <div class="ci-btn"><div class="ci-btn-e">😊</div><div class="ci-btn-l">Good</div></div>
+              <div class="ci-btn"><div class="ci-btn-e">🤩</div><div class="ci-btn-l">Great</div></div>
+            </div>
+            <div class="lbl-xs" style="margin-top:4px">Quick symptoms check</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <div class="chip on">😴 Fatigue</div>
+              <div class="chip on">🌫 Brain Fog</div>
+              <div class="chip">💪 Weakness</div>
+              <div class="chip">😵 Dizziness</div>
+              <div class="chip">✨ None</div>
+            </div>
+            <div class="ci-metric">
+              <div class="ci-metric-n">Supplement taken today?</div>
+              <div style="display:flex;gap:6px;margin-top:4px">
+                <div class="chip on" style="flex:1;justify-content:center">✓ Yes</div>
+                <div class="chip" style="flex:1;justify-content:center">✗ No</div>
+              </div>
+            </div>
+            <div style="margin-top:auto">
+              <div class="btn-cta">Next Question →</div>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab"><div class="tab-i">🏠</div><div class="tab-l">Home</div></div>
+          <div class="tab"><div class="tab-pill"><div class="tab-i">✅</div><div class="tab-l">Check-in</div></div></div>
+          <div class="tab"><div class="tab-i">📈</div><div class="tab-l">Progress</div></div>
+          <div class="tab"><div class="tab-i">👤</div><div class="tab-l">Profile</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7 · Weekly Progress -->
+    <div class="phone">
+      <div class="phone-label">07 · Weekly Progress</div>
+      <div class="phone-frame">
+        <div class="sb sb-blend"><span style="opacity:.4">9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:8px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:11px;background:rgba(220,240,255,.15)"></div><span style="font-size:9px;margin-left:4px;opacity:.25">🔋</span></div></div>
+        <div class="sc">
+          <div class="wp-hdr">
+            <h2>Weekly Progress</h2>
+            <p>Mar 22–28 · 7 days tracked</p>
+          </div>
+          <div class="wp-body">
+            <div>
+              <div class="wp-chart-lbl">Energy Score</div>
+              <div class="wp-bars">
+                <div class="wp-bw"><div class="wp-b" style="height:38px;background:linear-gradient(180deg,rgba(0,201,167,.82),rgba(0,201,167,.2))"></div><div class="wp-bd">M</div></div>
+                <div class="wp-bw"><div class="wp-b" style="height:50px;background:linear-gradient(180deg,rgba(0,201,167,.92),rgba(0,201,167,.3))"></div><div class="wp-bd">T</div></div>
+                <div class="wp-bw"><div class="wp-b" style="height:28px;background:linear-gradient(180deg,rgba(0,201,167,.5),rgba(0,201,167,.15))"></div><div class="wp-bd">W</div></div>
+                <div class="wp-bw"><div class="wp-b" style="height:56px;background:linear-gradient(180deg,#00C9A7,rgba(0,201,167,.4))"></div><div class="wp-bd">T</div></div>
+                <div class="wp-bw"><div class="wp-b" style="height:44px;background:linear-gradient(180deg,rgba(0,201,167,.85),rgba(0,201,167,.25))"></div><div class="wp-bd">F</div></div>
+                <div class="wp-bw"><div class="wp-b" style="height:42px;background:linear-gradient(180deg,rgba(34,211,238,.82),rgba(34,211,238,.25))"></div><div class="wp-bd">S</div></div>
+                <div class="wp-bw"><div class="wp-b" style="height:60px;background:linear-gradient(180deg,#22D3EE,rgba(34,211,238,.38))"></div><div class="wp-bd">S</div></div>
+              </div>
+            </div>
+            <div class="wp-sg">
+              <div class="wp-s"><div class="wp-s-ico">⚡</div><div class="wp-s-val">7.2</div><div class="wp-s-lbl">Avg Energy</div></div>
+              <div class="wp-s"><div class="wp-s-ico">😊</div><div class="wp-s-val">8.1</div><div class="wp-s-lbl">Avg Mood</div></div>
+              <div class="wp-s"><div class="wp-s-ico">🔥</div><div class="wp-s-val">7</div><div class="wp-s-lbl">Streak</div></div>
+            </div>
+            <div>
+              <div class="wp-chart-lbl">Sleep Quality</div>
+              <div class="wp-bars">
+                <div class="wp-bw"><div class="wp-b" style="height:46px;background:linear-gradient(180deg,rgba(129,140,248,.82),rgba(129,140,248,.22))"></div><div class="wp-bd">M</div></div>
+                <div class="wp-bw"><div class="wp-b" style="height:40px;background:linear-gradient(180deg,rgba(129,140,248,.72),rgba(129,140,248,.18))"></div><div class="wp-bd">T</div></div>
+                <div class="wp-bw"><div class="wp-b" style="height:32px;background:linear-gradient(180deg,rgba(129,140,248,.5),rgba(129,140,248,.12))"></div><div class="wp-bd">W</div></div>
+                <div class="wp-bw"><div class="wp-b" style="height:52px;background:linear-gradient(180deg,rgba(129,140,248,.9),rgba(129,140,248,.32))"></div><div class="wp-bd">T</div></div>
+                <div class="wp-bw"><div class="wp-b" style="height:44px;background:linear-gradient(180deg,rgba(129,140,248,.8),rgba(129,140,248,.22))"></div><div class="wp-bd">F</div></div>
+                <div class="wp-bw"><div class="wp-b" style="height:56px;background:linear-gradient(180deg,#818CF8,rgba(129,140,248,.38))"></div><div class="wp-bd">S</div></div>
+                <div class="wp-bw"><div class="wp-b" style="height:60px;background:linear-gradient(180deg,#818CF8,rgba(129,140,248,.45))"></div><div class="wp-bd">S</div></div>
+              </div>
+            </div>
+            <div class="wp-pattern">
+              <div class="wp-pattern-ico">🔍</div>
+              <div class="wp-pattern-txt">Energy peaks Thursdays & Sundays. Wednesdays show lower scores — check your diet and sleep the night before.</div>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab"><div class="tab-i">🏠</div><div class="tab-l">Home</div></div>
+          <div class="tab"><div class="tab-i">✅</div><div class="tab-l">Check-in</div></div>
+          <div class="tab"><div class="tab-pill" style="background:rgba(129,140,248,.12);border-color:rgba(129,140,248,.28)"><div class="tab-i">📈</div><div class="tab-l" style="color:var(--violet)">Progress</div></div></div>
+          <div class="tab"><div class="tab-i">👤</div><div class="tab-l">Profile</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SECTION C — SECONDARY SCREENS
+════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label"><div class="pill">C</div>Secondary Screens</div>
+  <div class="screen-row">
+
+    <!-- 8 · B12 Foods -->
+    <div class="phone">
+      <div class="phone-label">08 · B12 Foods</div>
+      <div class="phone-frame">
+        <div class="sb sb-blend"><span style="opacity:.4">9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:8px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:11px;background:rgba(220,240,255,.15)"></div><span style="font-size:9px;margin-left:4px;opacity:.25">🔋</span></div></div>
+        <div class="sc">
+          <div class="foods-hdr">
+            <h2>B12-Rich Foods</h2>
+            <p>Top dietary sources of vitamin B12</p>
+            <div class="foods-filter">
+              <div class="chip on">All</div>
+              <div class="chip">Animal</div>
+              <div class="chip">Fortified</div>
+              <div class="chip">Plant</div>
+            </div>
+          </div>
+          <div class="foods-body">
+            <div class="foods-card">
+              <div class="foods-ico">🦪</div>
+              <div style="flex:1">
+                <div class="foods-name">Clams / Oysters</div>
+                <div class="foods-b12">~84 mcg per 85g · Excellent</div>
+                <div class="foods-bar"><div class="foods-fill" style="width:95%"></div></div>
+                <div class="foods-note">Highest natural B12 source available</div>
+              </div>
+            </div>
+            <div class="foods-card">
+              <div class="foods-ico">🐟</div>
+              <div style="flex:1">
+                <div class="foods-name">Salmon / Tuna</div>
+                <div class="foods-b12">~4.9 mcg per 85g · Very Good</div>
+                <div class="foods-bar"><div class="foods-fill" style="width:60%"></div></div>
+                <div class="foods-note">Rich in omega-3 and B12</div>
+              </div>
+            </div>
+            <div class="foods-card">
+              <div class="foods-ico">🥩</div>
+              <div style="flex:1">
+                <div class="foods-name">Beef / Liver</div>
+                <div class="foods-b12">~2.4 mcg per 85g · Good</div>
+                <div class="foods-bar"><div class="foods-fill" style="width:44%"></div></div>
+                <div class="foods-note">Liver is especially B12-dense</div>
+              </div>
+            </div>
+            <div class="foods-card">
+              <div class="foods-ico">🥛</div>
+              <div style="flex:1">
+                <div class="foods-name">Fortified Plant Milk</div>
+                <div class="foods-b12">~1.2 mcg per cup · Moderate</div>
+                <div class="foods-bar"><div class="foods-fill" style="width:28%"></div></div>
+                <div class="foods-note">Great vegan option</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 9 · Supplement Tracker -->
+    <div class="phone">
+      <div class="phone-label">09 · Supplement Tracker</div>
+      <div class="phone-frame">
+        <div class="sb sb-blend"><span style="opacity:.4">9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:8px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:11px;background:rgba(220,240,255,.15)"></div><span style="font-size:9px;margin-left:4px;opacity:.25">🔋</span></div></div>
+        <div class="sc">
+          <div class="supp-hdr"><h2>Supplement Tracker</h2></div>
+          <div class="supp-body">
+            <div class="supp-today">
+              <div class="supp-today-ico">💊</div>
+              <div>
+                <div class="supp-today-val">1000 mcg</div>
+                <div class="supp-today-lbl">Methylcobalamin · Today</div>
+              </div>
+              <div class="supp-btn">✓ Taken</div>
+            </div>
+            <div class="supp-week">
+              <div class="supp-week-lbl">This Week</div>
+              <div class="supp-days">
+                <div class="supp-day"><div class="supp-day-circle done">✓</div><div class="supp-day-lbl">Mon</div></div>
+                <div class="supp-day"><div class="supp-day-circle done">✓</div><div class="supp-day-lbl">Tue</div></div>
+                <div class="supp-day"><div class="supp-day-circle done">✓</div><div class="supp-day-lbl">Wed</div></div>
+                <div class="supp-day"><div class="supp-day-circle done">✓</div><div class="supp-day-lbl">Thu</div></div>
+                <div class="supp-day"><div class="supp-day-circle done">✓</div><div class="supp-day-lbl">Fri</div></div>
+                <div class="supp-day"><div class="supp-day-circle done">✓</div><div class="supp-day-lbl">Sat</div></div>
+                <div class="supp-day"><div class="supp-day-circle today">◎</div><div class="supp-day-lbl">Sun</div></div>
+              </div>
+            </div>
+            <div class="lbl-xs" style="padding-top:2px">My Supplements</div>
+            <div class="supp-history">
+              <div class="supp-row">
+                <div class="supp-row-ico">💊</div>
+                <div class="supp-row-name">Methylcobalamin B12</div>
+                <div style="text-align:right"><div class="supp-row-dose">1000 mcg</div><div class="supp-row-time">Daily · Morning</div></div>
+              </div>
+              <div class="supp-row">
+                <div class="supp-row-ico">🫀</div>
+                <div class="supp-row-name">Folic Acid</div>
+                <div style="text-align:right"><div class="supp-row-dose">400 mcg</div><div class="supp-row-time">Daily · Morning</div></div>
+              </div>
+              <div class="supp-row">
+                <div class="supp-row-ico">🦴</div>
+                <div class="supp-row-name">Vitamin D3</div>
+                <div style="text-align:right"><div class="supp-row-dose">2000 IU</div><div class="supp-row-time">Daily · Evening</div></div>
+              </div>
+            </div>
+            <div class="btn-outline">+ Add Supplement</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10 · Symptoms Log -->
+    <div class="phone">
+      <div class="phone-label">10 · Symptoms Log</div>
+      <div class="phone-frame">
+        <div class="sb sb-blend"><span style="opacity:.4">9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:8px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:11px;background:rgba(220,240,255,.15)"></div><span style="font-size:9px;margin-left:4px;opacity:.25">🔋</span></div></div>
+        <div class="sc">
+          <div class="sym-hdr"><h2>Symptom Log</h2></div>
+          <div class="sym-body">
+            <div class="sym-date">
+              <div>
+                <div class="sym-date-lbl">Sunday, Mar 29</div>
+                <div class="sym-date-sub">Today's entry</div>
+              </div>
+              <div class="tag tag-teal">Active</div>
+            </div>
+            <div class="lbl-xs">Select symptoms</div>
+            <div class="sym-grid">
+              <div class="sym-chip active"><div class="sym-chip-ico">😴</div><div class="sym-chip-lbl">Fatigue</div></div>
+              <div class="sym-chip active"><div class="sym-chip-ico">🌫</div><div class="sym-chip-lbl">Brain Fog</div></div>
+              <div class="sym-chip"><div class="sym-chip-ico">💪</div><div class="sym-chip-lbl">Weakness</div></div>
+              <div class="sym-chip"><div class="sym-chip-ico">🫁</div><div class="sym-chip-lbl">Breathless</div></div>
+              <div class="sym-chip"><div class="sym-chip-ico">😵</div><div class="sym-chip-lbl">Dizziness</div></div>
+              <div class="sym-chip"><div class="sym-chip-ico">🖐</div><div class="sym-chip-lbl">Tingling</div></div>
+            </div>
+            <div class="sym-severity">
+              <div class="sym-sev-lbl">Overall Severity</div>
+              <div class="sym-sev-btns">
+                <div class="sym-sev-btn on-low">Mild</div>
+                <div class="sym-sev-btn on-med">Moderate</div>
+                <div class="sym-sev-btn">Severe</div>
+              </div>
+            </div>
+            <div style="margin-top:auto"><div class="btn-cta">Save Entry →</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 11 · Profile -->
+    <div class="phone">
+      <div class="phone-label">11 · Profile</div>
+      <div class="phone-frame">
+        <div class="sb sb-blend"><span style="opacity:.4">9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:8px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:11px;background:rgba(220,240,255,.15)"></div><span style="font-size:9px;margin-left:4px;opacity:.25">🔋</span></div></div>
+        <div class="sc">
+          <div class="prof-hdr">
+            <div class="prof-av">👤</div>
+            <div>
+              <div class="prof-name">Alex Johnson</div>
+              <div class="prof-email">alex@email.com</div>
+            </div>
+            <div class="prof-edit">Edit</div>
+          </div>
+          <div class="prof-body">
+            <div class="prof-sg">
+              <div class="prof-s"><div class="prof-s-val">7</div><div class="prof-s-lbl">Day Streak</div></div>
+              <div class="prof-s"><div class="prof-s-val">23</div><div class="prof-s-lbl">Check-ins</div></div>
+              <div class="prof-s"><div class="prof-s-val" style="color:var(--amber)">55%</div><div class="prof-s-lbl">Risk Score</div></div>
+            </div>
+            <div class="lbl-xs">Personal Info</div>
+            <div class="prof-list">
+              <div class="prof-row"><div class="prof-row-ico">👤</div><div class="prof-row-lbl">Name</div><div class="prof-row-val">Alex Johnson</div><div class="prof-row-chev">›</div></div>
+              <div class="prof-row"><div class="prof-row-ico">🎂</div><div class="prof-row-lbl">Age Range</div><div class="prof-row-val">31–50</div><div class="prof-row-chev">›</div></div>
+              <div class="prof-row"><div class="prof-row-ico">⚧</div><div class="prof-row-lbl">Gender</div><div class="prof-row-val">Male</div><div class="prof-row-chev">›</div></div>
+              <div class="prof-row"><div class="prof-row-ico">🥗</div><div class="prof-row-lbl">Diet Type</div><div class="prof-row-val">Omnivore</div><div class="prof-row-chev">›</div></div>
+            </div>
+            <div class="lbl-xs">Health Goals</div>
+            <div class="prof-list">
+              <div class="prof-row"><div class="prof-row-ico">🎯</div><div class="prof-row-lbl">Primary Goal</div><div class="prof-row-val">Reduce Risk</div><div class="prof-row-chev">›</div></div>
+              <div class="prof-row"><div class="prof-row-ico">📊</div><div class="prof-row-lbl">Target B12</div><div class="prof-row-val">2.4 mcg/day</div><div class="prof-row-chev">›</div></div>
+            </div>
+            <div style="margin-top:auto"><div class="btn-outline">Sign Out</div></div>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab"><div class="tab-i">🏠</div><div class="tab-l">Home</div></div>
+          <div class="tab"><div class="tab-i">✅</div><div class="tab-l">Check-in</div></div>
+          <div class="tab"><div class="tab-i">📈</div><div class="tab-l">Progress</div></div>
+          <div class="tab on"><div class="tab-i">👤</div><div class="tab-l">Profile</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 12 · Notifications -->
+    <div class="phone">
+      <div class="phone-label">12 · Notifications</div>
+      <div class="phone-frame">
+        <div class="sb sb-blend"><span style="opacity:.4">9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:8px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:11px;background:rgba(220,240,255,.15)"></div><span style="font-size:9px;margin-left:4px;opacity:.25">🔋</span></div></div>
+        <div class="sc">
+          <div class="notif-hdr"><h2>Notifications</h2></div>
+          <div class="notif-body">
+            <div class="notif-item unread">
+              <div class="notif-ico notif-ico-teal">💊</div>
+              <div style="flex:1">
+                <div class="notif-title">Supplement Reminder</div>
+                <div class="notif-body-txt">Time to take your Methylcobalamin B12 — 1000 mcg daily dose.</div>
+                <div class="notif-time">Just now</div>
+              </div>
+              <div class="notif-dot"></div>
+            </div>
+            <div class="notif-item unread">
+              <div class="notif-ico notif-ico-cyan">✨</div>
+              <div style="flex:1">
+                <div class="notif-title">AI Weekly Insight</div>
+                <div class="notif-body-txt">Your energy improved 18% this week. Keep up the great habits!</div>
+                <div class="notif-time">2 hours ago</div>
+              </div>
+              <div class="notif-dot"></div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-ico notif-ico-violet">📈</div>
+              <div style="flex:1">
+                <div class="notif-title">Check-in Reminder</div>
+                <div class="notif-body-txt">Don't forget your daily check-in to maintain your 7-day streak!</div>
+                <div class="notif-time">3 hours ago</div>
+              </div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-ico notif-ico-amber">🥗</div>
+              <div style="flex:1">
+                <div class="notif-title">Diet Tip</div>
+                <div class="notif-body-txt">Add salmon to your meals this week for a natural B12 boost.</div>
+                <div class="notif-time">Yesterday</div>
+              </div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-ico notif-ico-teal">🩺</div>
+              <div style="flex:1">
+                <div class="notif-title">Doctor Recommendation</div>
+                <div class="notif-body-txt">It's been 30 days. Consider scheduling a B12 blood test.</div>
+                <div class="notif-time">2 days ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 13 · Settings -->
+    <div class="phone">
+      <div class="phone-label">13 · Settings</div>
+      <div class="phone-frame">
+        <div class="sb sb-blend"><span style="opacity:.4">9:41</span><div class="notch"></div><div class="sb-icons"><div class="bar" style="height:5px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:8px;background:rgba(220,240,255,.15)"></div><div class="bar" style="height:11px;background:rgba(220,240,255,.15)"></div><span style="font-size:9px;margin-left:4px;opacity:.25">🔋</span></div></div>
+        <div class="sc">
+          <div class="set-hdr"><h2>Settings</h2></div>
+          <div class="set-body">
+            <div class="set-section-lbl">Notifications</div>
+            <div class="set-list">
+              <div class="set-row">
+                <div class="set-row-ico" style="background:rgba(0,201,167,0.12)">🔔</div>
+                <div class="set-row-lbl">Daily Reminders</div>
+                <div class="set-toggle"></div>
+              </div>
+              <div class="set-row">
+                <div class="set-row-ico" style="background:rgba(34,211,238,0.11)">✨</div>
+                <div class="set-row-lbl">AI Insights</div>
+                <div class="set-toggle"></div>
+              </div>
+              <div class="set-row">
+                <div class="set-row-ico" style="background:rgba(129,140,248,0.12)">💊</div>
+                <div class="set-row-lbl">Supplement Alerts</div>
+                <div class="set-toggle off"></div>
+              </div>
+            </div>
+            <div class="set-section-lbl">Preferences</div>
+            <div class="set-list">
+              <div class="set-row">
+                <div class="set-row-ico" style="background:rgba(56,189,248,0.11)">🌙</div>
+                <div class="set-row-lbl">Dark Mode</div>
+                <div class="set-toggle"></div>
+              </div>
+              <div class="set-row">
+                <div class="set-row-ico" style="background:rgba(0,201,167,0.10)">📏</div>
+                <div class="set-row-lbl">Units</div>
+                <div class="set-row-val">Metric</div>
+                <div class="set-row-chev">›</div>
+              </div>
+              <div class="set-row">
+                <div class="set-row-ico" style="background:rgba(34,211,238,0.10)">🌐</div>
+                <div class="set-row-lbl">Language</div>
+                <div class="set-row-val">English</div>
+                <div class="set-row-chev">›</div>
+              </div>
+            </div>
+            <div class="set-section-lbl">Data & Privacy</div>
+            <div class="set-list">
+              <div class="set-row">
+                <div class="set-row-ico" style="background:rgba(129,140,248,0.12)">🔒</div>
+                <div class="set-row-lbl">Privacy Policy</div>
+                <div class="set-row-chev">›</div>
+              </div>
+              <div class="set-row">
+                <div class="set-row-ico" style="background:rgba(0,201,167,0.10)">📤</div>
+                <div class="set-row-lbl">Export My Data</div>
+                <div class="set-row-chev">›</div>
+              </div>
+              <div class="set-row">
+                <div class="set-row-ico" style="background:rgba(251,113,133,0.10)">🗑</div>
+                <div class="set-row-lbl" style="color:var(--rose)">Delete Account</div>
+                <div class="set-row-chev">›</div>
+              </div>
+            </div>
+            <div style="text-align:center;padding:8px 0;font-size:.6rem;color:var(--text-3);">B12 Tracker v2.1.0 · Made with ❤️</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<div style="text-align:center;padding:40px 24px 60px;position:relative;z-index:10;">
+  <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(0,201,167,0.07);border:1px solid rgba(0,201,167,0.16);border-radius:24px;padding:10px 24px;backdrop-filter:blur(12px);">
+    <span style="font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)">B12 Health Tracker</span>
+    <span style="width:1px;height:14px;background:var(--border-dim)"></span>
+    <span style="font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)">Spatial Teal Theme</span>
+    <span style="width:1px;height:14px;background:var(--border-dim)"></span>
+    <span style="font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)">13 Screens</span>
+  </div>
+</div>
+
+</body>
+</html>
