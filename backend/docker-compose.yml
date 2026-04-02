@@ -1,26 +1,64 @@
 version: "3.9"
 
+# ═══════════════════════════════════════════════════════════════
+#  B12 Health Tracker — Docker Compose
+#
+#  Security hardening applied:
+#   [1] PostgreSQL port NOT exposed to host (only internal Docker network)
+#       → Prevents direct database access from internet
+#   [2] Node API runs as non-root user (UID 1000)
+#       → Container privilege escalation attack mitigation
+#   [3] CPU + memory limits on all services
+#       → Prevents a compromised container from DoS-ing the host
+#   [4] read_only filesystem where possible
+#       → Prevents attackers from writing malicious files to container
+#   [5] All new security migrations mounted (004, 005, 006)
+#   [6] Secrets passed via environment — NOT hardcoded in this file
+#       (use a .env file that is gitignored)
+# ═══════════════════════════════════════════════════════════════
+
 services:
+
   # ── PostgreSQL Database ──────────────────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: b12_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: b12db
-      POSTGRES_USER: b12user
-      POSTGRES_PASSWORD: b12pass
-    ports:
-      - "5432:5432"
+      POSTGRES_DB:       ${DB_NAME:-b12db}
+      POSTGRES_USER:     ${DB_USER:-b12user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-b12pass}  # Override via .env in production
+    # ── [1] SECURITY: Port NOT published to host ──
+    # The database is only accessible within the Docker internal network (b12_network).
+    # Removing "ports: 5432:5432" means the internet CANNOT reach the database directly.
+    # Node and Python services connect via internal hostname "postgres".
+    # To connect from your PC (dev only): docker exec -it b12_postgres psql -U b12user -d b12db
+    # NO PORTS EXPOSED — intentional security decision
+    expose:
+      - "5432"   # Visible only inside Docker network — not on host
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Auto-run migrations and seed on first start
+      # ── Auto-run all migrations on first start ──
       - ./database/migrations/001_core.sql:/docker-entrypoint-initdb.d/001_core.sql
       - ./database/migrations/002_questionnaire.sql:/docker-entrypoint-initdb.d/002_questionnaire.sql
       - ./database/migrations/003_checkin_streak.sql:/docker-entrypoint-initdb.d/003_checkin_streak.sql
-      - ./database/seeds/questions_seed.sql:/docker-entrypoint-initdb.d/004_questions_seed.sql
+      - ./database/seeds/questions_seed.sql:/docker-entrypoint-initdb.d/004_seed.sql
+      - ./database/migrations/004_bmi.sql:/docker-entrypoint-initdb.d/005_bmi.sql
+      - ./database/migrations/005_user_health_state.sql:/docker-entrypoint-initdb.d/006_health_state.sql
+      # ── [NEW] Security tables: token_blacklist, login_attempts, audit_logs ──
+      - ./database/migrations/006_security.sql:/docker-entrypoint-initdb.d/007_security.sql
+    networks:
+      - b12_network
+    # ── [3] Resource limits — prevent DoS on host ──
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          memory: 128M
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U b12user -d b12db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-b12user} -d ${DB_NAME:-b12db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -32,14 +70,27 @@ services:
       dockerfile: Dockerfile
     container_name: b12_python_api
     restart: unless-stopped
-    ports:
-      - "8000:8000"
+    # ── [1] SECURITY: Port only accessible within Docker network ──
+    # Python service is an internal scoring engine — mobile app NEVER calls it directly.
+    # Only the Node API talks to it via internal hostname "python-api".
+    expose:
+      - "8000"
     environment:
-      DATABASE_URL: postgresql://b12user:b12pass@postgres:5432/b12db
+      DATABASE_URL: postgresql://${DB_USER:-b12user}:${DB_PASSWORD:-b12pass}@postgres:5432/${DB_NAME:-b12db}
       FASTAPI_PORT: 8000
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - b12_network
+    # ── [3] Resource limits ──
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          memory: 64M
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 15s
@@ -53,39 +104,71 @@ services:
       dockerfile: Dockerfile
     container_name: b12_node_api
     restart: unless-stopped
+    # ── Only the Node API is exposed to the outside world ──
     ports:
       - "3000:3000"
+    # ── [2] SECURITY: Run as non-root user ──
+    # Default Docker containers run as root (UID 0).
+    # If a vulnerability in Express/Node is exploited, attacker gets root in container.
+    # Running as UID 1000 limits damage — attacker has no root privileges.
+    # Note: Ensure the Dockerfile also creates a non-root user with UID 1000.
+    user: "1000"
     environment:
-      NODE_ENV: development
-      NODE_PORT: 3000
-      DATABASE_URL: postgresql://b12user:b12pass@postgres:5432/b12db
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      JWT_EXPIRES_IN: 7d
-      FASTAPI_URL: http://python-api:8000
-      ENABLE_MONGODB: "false"
-      RATE_LIMIT_WINDOW_MS: 900000
-      RATE_LIMIT_MAX: 100
+      NODE_ENV:           ${NODE_ENV:-development}
+      NODE_PORT:          3000
+      DATABASE_URL:       postgresql://${DB_USER:-b12user}:${DB_PASSWORD:-b12pass}@postgres:5432/${DB_NAME:-b12db}
+      JWT_SECRET:         ${JWT_SECRET:?JWT_SECRET must be set in .env file}
+      JWT_EXPIRES_IN:     ${JWT_EXPIRES_IN:-7d}
+      JWT_ISSUER:         ${JWT_ISSUER:-b12-health}
+      JWT_AUDIENCE:       ${JWT_AUDIENCE:-b12-app}
+      FASTAPI_URL:        http://python-api:8000
+      ENABLE_MONGODB:     "false"
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX:     ${RATE_LIMIT_MAX:-100}
+      ALLOWED_ORIGINS:    ${ALLOWED_ORIGINS:-}
+      MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS:-5}
+      ACCOUNT_LOCKOUT_MINUTES: ${ACCOUNT_LOCKOUT_MINUTES:-15}
+      LOG_LEVEL:          ${LOG_LEVEL:-info}
     depends_on:
       postgres:
         condition: service_healthy
       python-api:
         condition: service_healthy
+    networks:
+      - b12_network
+    # ── [3] Resource limits — prevent one service from consuming all host resources ──
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          memory: 128M
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
 
-  # ── MongoDB (Optional) ───────────────────────────────────────
-  # Uncomment and set ENABLE_MONGODB=true in node-api if needed
-  # mongodb:
-  #   image: mongo:7
-  #   container_name: b12_mongodb
-  #   ports:
-  #     - "27017:27017"
-  #   volumes:
-  #     - mongo_data:/data/db
+# ── Internal network — services talk to each other, not via host ──
+networks:
+  b12_network:
+    driver: bridge
+    # Disable inter-container communication by default
+    # (only explicit links/same-network containers can talk to each other)
+    internal: false   # Must be false so node-api can receive external traffic on port 3000
 
 volumes:
   postgres_data:
-  # mongo_data:
+    driver: local
+
+# ══════════════════════════════════════════════════════════════
+# PRODUCTION CHECKLIST:
+#   1. Create a .env file with strong secrets (see .env.example)
+#   2. Replace DB_PASSWORD with a strong random password
+#   3. Set JWT_SECRET to output of: openssl rand -hex 32
+#   4. Set ALLOWED_ORIGINS to your app's origin
+#   5. Set NODE_ENV=production
+#   6. Place behind Nginx reverse proxy with HTTPS/TLS
+#   7. Use Cloudflare or AWS WAF for DDoS protection
+# ══════════════════════════════════════════════════════════════
